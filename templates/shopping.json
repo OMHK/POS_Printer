@@ -1,0 +1,11 @@
+{
+  "id": "shopping",
+  "name": "Shopping List",
+  "elements": [
+    {"type": "text", "text": "SHOPPING", "align": "center", "bold": true, "double": true},
+    {"type": "field", "name": "date", "label": "Date", "align": "center", "default": "today"},
+    {"type": "thick_divider"},
+    {"type": "list", "name": "items", "label": "Item", "prefix": "[ ] "},
+    {"type": "spacer", "lines": 2}
+  ]
+}

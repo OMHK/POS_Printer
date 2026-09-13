@@ -1,0 +1,9 @@
+{
+  "id": "image",
+  "name": "Image / Bitmap",
+  "elements": [
+    {"type": "field", "name": "title", "label": "Title", "align": "center", "bold": true, "optional": true},
+    {"type": "image", "name": "bitmap", "label": "Image", "align": "center"},
+    {"type": "spacer", "lines": 2}
+  ]
+}

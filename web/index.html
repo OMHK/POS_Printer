@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thermal Print Templates</title>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --panel: #ffffff;
+    --border: #dfe2e7;
+    --text: #2b2f36;
+    --muted: #8a8f98;
+    --accent: #2f6feb;
+    --accent-text: #ffffff;
+    --danger: #c0392b;
+    --danger-bg: #fdecea;
+    --success: #1e8e3e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  }
+  .app {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 24px 16px 64px;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+  }
+  @media (max-width: 760px) {
+    .app { grid-template-columns: 1fr; }
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0 0 16px;
+    grid-column: 1 / -1;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  label.top {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  select#templateSelect {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 15px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+  }
+  .warning {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: var(--danger-bg);
+    color: var(--danger);
+    border-radius: 6px;
+    font-size: 13px;
+    display: none;
+  }
+  .warning label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .field-block { margin-top: 18px; }
+  .field-label {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .static-label {
+    font-size: 13px;
+    color: var(--muted);
+    font-style: italic;
+    padding: 6px 0;
+  }
+  .decor {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    padding: 4px 0;
+    letter-spacing: 1px;
+  }
+  input[type="text"], textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+  }
+  textarea { min-height: 72px; }
+  .image-thumb {
+    display: block;
+    max-width: 200px;
+    max-height: 200px;
+    margin-top: 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+
+  .li-row {
+    display: grid;
+    grid-template-columns: 1fr 60px 80px 80px 28px;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .li-row input { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+  .li-row .li-total { font-size: 13px; text-align: right; color: var(--muted); font-family: monospace; }
+  .li-header { display: grid; grid-template-columns: 1fr 60px 80px 80px 28px; gap: 6px; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .li-remove { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0; }
+  .li-add { margin-top: 4px; }
+  .li-grand-total { font-family: monospace; font-weight: 600; }
+
+  /* --- formatting toolbar --- */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #eef0f3;
+    border: 1px solid var(--border);
+    border-radius: 8px 8px 0 0;
+    padding: 4px;
+    width: fit-content;
+  }
+  .toolbar + input, .toolbar + textarea, .toolbar + .static-label {
+    border-radius: 0 6px 6px 6px;
+  }
+  .tb-btn {
+    width: 28px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 13px;
+  }
+  .tb-btn:hover { background: #e2e5ea; }
+  .tb-btn.active { background: var(--text); color: white; }
+  .tb-btn.bold-btn { font-weight: 700; }
+  .tb-sep { width: 1px; height: 18px; background: var(--border); margin: 0 3px; }
+  .align-icon { width: 14px; height: 10px; display: flex; flex-direction: column; gap: 2px; justify-content: center; }
+  .align-icon span { display: block; height: 2px; background: currentColor; border-radius: 1px; }
+  .al-left span:nth-child(1) { width: 100%; }
+  .al-left span:nth-child(2) { width: 60%; }
+  .al-center span:nth-child(1) { width: 100%; }
+  .al-center span:nth-child(2) { width: 60%; margin: 0 auto; }
+  .al-right span:nth-child(1) { width: 100%; }
+  .al-right span:nth-child(2) { width: 60%; margin-left: auto; }
+
+  /* --- preview panel --- */
+  .preview-wrap { position: sticky; top: 24px; align-self: start; }
+  .receipt {
+    background: #fffdf8;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    padding: 16px 14px;
+    font-family: "Courier New", Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    min-height: 120px;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  .receipt .line { white-space: pre-wrap; word-break: break-word; }
+  .receipt .empty { color: var(--muted); font-style: italic; font-family: inherit; }
+
+  .actions { margin-top: 16px; display: flex; gap: 10px; }
+  button.primary {
+    background: var(--accent);
+    color: var(--accent-text);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .status { margin-top: 10px; font-size: 13px; }
+  .status.ok { color: var(--success); }
+  .status.err { color: var(--danger); }
+
+  .view-nav { display: flex; gap: 4px; }
+  .view-tab {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 8px 4px;
+    margin-right: 16px;
+    font-size: 14px;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .view-tab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+  .manage-template-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .manage-template-row:hover { color: var(--accent); }
+
+  @media (max-width: 760px) {
+    .preview-wrap { position: static; }
+    .tb-btn { width: 42px; height: 40px; font-size: 15px; }
+    .tb-sep { height: 24px; }
+    .toolbar { padding: 6px; gap: 6px; }
+    button.primary, button.secondary { padding: 12px 20px; font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <h1>Thermal Print Templates</h1>
+    <div class="view-nav" style="grid-column: 1 / -1; margin-bottom: 8px;">
+      <button type="button" class="view-tab active" id="tabPrint">Print</button>
+      <button type="button" class="view-tab" id="tabManage">Manage Templates</button>
+    </div>
+
+    <div id="printView" style="display:contents;">
+    <div class="panel" id="formPanel">
+      <label class="top" for="templateSelect">Template</label>
+      <select id="templateSelect"></select>
+      <div class="warning" id="warningBox">
+        <div id="warningText"></div>
+        <label><input type="checkbox" id="warningAck"> I understand, proceed anyway</label>
+      </div>
+      <div id="formFields"></div>
+    </div>
+
+    <div class="preview-wrap">
+      <div class="panel">
+        <label class="top">Preview</label>
+        <div class="receipt" id="receipt"><div class="empty">Nothing to preview yet.</div></div>
+        <div class="actions">
+          <button class="secondary" id="refreshBtn" type="button">Refresh</button>
+          <button class="primary" id="printBtn" type="button">Print</button>
+        </div>
+        <div class="status" id="status"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="usbPanel" style="grid-column: 1 / -1;">
+      <label class="top">Printer USB Connection (HomeServer) — read-only</label>
+      <div id="usbCurrent" class="static-label"></div>
+      <div class="field-block">
+        <label class="field-label">Known devices</label>
+        <select id="usbDeviceSelect"></select>
+      </div>
+      <div class="field-block" id="usbCommandBlock" style="display:none;">
+        <label class="field-label">Run this on HomeServer to switch the bridge to the selected device:</label>
+        <textarea id="usbCommandText" readonly rows="5" style="font-family:'Courier New',monospace;font-size:12px;"></textarea>
+        <div class="static-label">This app can't run this for you (no stored credentials, by design) — SSH in and paste it yourself, same as the fix documented in Printing_Closet_Setup.md.</div>
+      </div>
+    </div>
+    </div>
+
+    <div id="manageView" hidden style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 320px; gap: 24px;">
+      <div class="panel">
+        <label class="top">Editing: <span id="editingLabel">(new template)</span></label>
+        <textarea id="templateJsonEditor" rows="24" style="font-family:'Courier New',monospace;font-size:12px;width:100%;"></textarea>
+        <div class="status" id="manageStatus"></div>
+        <div class="actions">
+          <button class="secondary" type="button" id="newTemplateBtn">New</button>
+          <button class="secondary" type="button" id="deleteTemplateBtn">Delete</button>
+          <button class="primary" type="button" id="saveTemplateBtn">Save</button>
+        </div>
+      </div>
+      <div class="panel">
+        <label class="top">Existing templates</label>
+        <div id="manageTemplateList"></div>
+        <details style="margin-top:16px;">
+          <summary style="cursor:pointer;font-size:13px;font-weight:600;">Element type reference</summary>
+          <div style="font-size:12px;font-family:'Courier New',monospace;white-space:pre-wrap;margin-top:8px;line-height:1.6;">text            {"type":"text","text":"...","align":"left|center|right","bold":false,"double":false}
+field           {"type":"field","name":"x","label":"...","align":"left","default":"today|now|literal"}
+list            {"type":"list","name":"x","label":"...","prefix":"[ ] "}
+numbered_list   {"type":"numbered_list","name":"x","label":"..."}
+section_header  {"type":"section_header","text":"..."}
+divider         {"type":"divider"}
+thick_divider   {"type":"thick_divider"}
+spacer          {"type":"spacer","lines":2}
+auto            {"type":"auto","default":"today|now","align":"left"}
+image           {"type":"image","name":"x","label":"...","align":"center"}
+qr              {"type":"qr","name":"x","label":"..."}
+barcode         {"type":"barcode","name":"x","label":"...","bc_type":"CODE128"}
+line_items      {"type":"line_items","name":"x","label":"Items"}
+auto_total      {"type":"auto_total","items_name":"x","label":"TOTAL","bold":true}
+
+Every template needs top-level "id" (a-z 0-9 _ -), "name", and "elements" (array).</div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+<script>
+const ALIGNS = ["left", "center", "right"];
+
+// Mirrors template_core.resolve_default() - only used to pre-fill the input for display;
+// the value actually submitted is whatever ends up in the field, so this can't drift the print output.
+function resolveDefault(value) {
+  const d = new Date();
+  if (value === "today") {
+    const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
+    const month = d.toLocaleDateString("en-US", { month: "short" });
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${weekday} ${month} ${day}, ${d.getFullYear()}`;
+  }
+  if (value === "now") {
+    let h = d.getHours();
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12 || 12;
+    return `${String(h).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")} ${ampm}`;
+  }
+  return value || "";
+}
+const STYLABLE = new Set(["field", "list", "numbered_list", "text", "section_header", "auto"]);
+
+let templates = [];
+let currentTemplate = null;
+let elementStyles = [];   // parallel to currentTemplate.elements
+let imageValues = {};     // name -> data: URL (base64), for "image" elements
+let lineItemsValues = {}; // name -> [{name, qty, price}, ...], for "line_items" elements
+let previewTimer = null;
+
+const templateSelect = document.getElementById("templateSelect");
+const warningBox = document.getElementById("warningBox");
+const warningText = document.getElementById("warningText");
+const warningAck = document.getElementById("warningAck");
+const formFields = document.getElementById("formFields");
+const receiptEl = document.getElementById("receipt");
+const statusEl = document.getElementById("status");
+const printBtn = document.getElementById("printBtn");
+
+async function loadTemplates() {
+  const res = await fetch("/api/templates");
+  templates = await res.json();
+  templateSelect.innerHTML = templates.map(t => `<option value="${t.id}">${t.name}</option>`).join("");
+  if (templates.length) selectTemplate(templates[0].id);
+}
+
+const USB_SERVICE_FILE = "/etc/systemd/system/posiflex-bridge.service";
+
+function usbFixCommand(deviceId) {
+  return [
+    `sudo sed -i 's#/dev/[^,]*#/dev/serial/by-id/${deviceId}#' ${USB_SERVICE_FILE}`,
+    "sudo systemctl daemon-reload",
+    "sudo systemctl restart posiflex-bridge.service",
+    "systemctl status posiflex-bridge.service --no-pager",
+  ].join("\n");
+}
+
+async function loadUsbDevices() {
+  const res = await fetch("/api/usb-devices");
+  const data = await res.json();
+  const select = document.getElementById("usbDeviceSelect");
+  const currentEl = document.getElementById("usbCurrent");
+  const commandBlock = document.getElementById("usbCommandBlock");
+  const commandText = document.getElementById("usbCommandText");
+
+  if (!data.devices || !data.devices.length) {
+    currentEl.textContent = "No known devices - edit usb_devices.json (see its own note for how).";
+    select.innerHTML = "";
+    return;
+  }
+
+  const currentDevice = data.devices.find(d => d.id === data.current);
+  currentEl.textContent = `Bridge is currently pointed at: ${currentDevice ? `${currentDevice.name} (${currentDevice.id})` : data.current}`;
+
+  select.innerHTML = data.devices.map(d =>
+    `<option value="${d.id}" ${d.id === data.current ? "selected" : ""}>${d.name} (${d.id})</option>`
+  ).join("");
+
+  const updateCommand = () => {
+    const chosen = select.value;
+    if (chosen === data.current) {
+      commandBlock.style.display = "none";
+      return;
+    }
+    commandBlock.style.display = "block";
+    commandText.value = usbFixCommand(chosen);
+  };
+  select.addEventListener("change", updateCommand);
+  updateCommand();
+}
+
+function selectTemplate(id) {
+  currentTemplate = templates.find(t => t.id === id);
+  templateSelect.value = id;
+  imageValues = {};
+  lineItemsValues = {};
+  elementStyles = currentTemplate.elements.map(el => ({
+    align: el.align || "left",
+    bold: el.bold || (el.type === "section_header"),
+    double: el.double || false,
+  }));
+
+  if (currentTemplate.status === "blocked") {
+    warningBox.style.display = "block";
+    warningText.textContent = currentTemplate.status_note;
+    warningAck.checked = false;
+    printBtn.disabled = true;
+  } else {
+    warningBox.style.display = "none";
+    printBtn.disabled = false;
+  }
+
+  renderForm();
+  schedulePreview();
+  statusEl.textContent = "";
+}
+
+warningAck.addEventListener("change", () => {
+  printBtn.disabled = !warningAck.checked;
+});
+
+function makeToolbar(i) {
+  const st = elementStyles[i];
+  const wrap = document.createElement("div");
+  wrap.className = "toolbar";
+
+  const boldBtn = document.createElement("button");
+  boldBtn.type = "button";
+  boldBtn.className = "tb-btn bold-btn" + (st.bold ? " active" : "");
+  boldBtn.textContent = "B";
+  boldBtn.title = "Bold";
+  boldBtn.onclick = () => { st.bold = !st.bold; boldBtn.classList.toggle("active", st.bold); schedulePreview(); };
+  wrap.appendChild(boldBtn);
+
+  const sep1 = document.createElement("div");
+  sep1.className = "tb-sep";
+  wrap.appendChild(sep1);
+
+  ALIGNS.forEach(a => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "tb-btn" + (st.align === a ? " active" : "");
+    btn.title = a[0].toUpperCase() + a.slice(1) + " align";
+    btn.innerHTML = `<span class="align-icon al-${a}"><span></span><span></span></span>`;
+    btn.onclick = () => {
+      st.align = a;
+      wrap.querySelectorAll(".al-left, .al-center, .al-right").forEach(el => {
+        el.closest(".tb-btn").classList.toggle("active", el.classList.contains("al-" + a));
+      });
+      schedulePreview();
+    };
+    wrap.appendChild(btn);
+  });
+
+  const sep2 = document.createElement("div");
+  sep2.className = "tb-sep";
+  wrap.appendChild(sep2);
+
+  const doubleBtn = document.createElement("button");
+  doubleBtn.type = "button";
+  doubleBtn.className = "tb-btn" + (st.double ? " active" : "");
+  doubleBtn.textContent = "2x";
+  doubleBtn.title = "Double size";
+  doubleBtn.onclick = () => { st.double = !st.double; doubleBtn.classList.toggle("active", st.double); schedulePreview(); };
+  wrap.appendChild(doubleBtn);
+
+  return wrap;
+}
+
+function computeItemsTotal(items) {
+  return items.reduce((sum, it) => {
+    const qty = parseFloat(it.qty), price = parseFloat(it.price);
+    return sum + (isNaN(qty) || isNaN(price) ? 0 : qty * price);
+  }, 0);
+}
+
+function refreshAutoTotals() {
+  document.querySelectorAll(".auto-total-display").forEach(el => {
+    const items = lineItemsValues[el.dataset.itemsName] || [];
+    el.textContent = `Total: ${computeItemsTotal(items).toFixed(2)}`;
+  });
+}
+
+function renderLineItemsEditor(container, elName) {
+  if (!lineItemsValues[elName]) lineItemsValues[elName] = [{ name: "", qty: "1", price: "" }];
+
+  const header = document.createElement("div");
+  header.className = "li-header";
+  header.innerHTML = "<span>Item</span><span>Qty</span><span>Price</span><span>Total</span><span></span>";
+  container.appendChild(header);
+
+  const rowsEl = document.createElement("div");
+  container.appendChild(rowsEl);
+
+  const renderRows = () => {
+    rowsEl.innerHTML = "";
+    lineItemsValues[elName].forEach((item, idx) => {
+      const row = document.createElement("div");
+      row.className = "li-row";
+
+      const nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.placeholder = "Item name";
+      nameInput.value = item.name;
+      nameInput.addEventListener("input", () => { item.name = nameInput.value; updateTotal(); schedulePreview(); });
+
+      const qtyInput = document.createElement("input");
+      qtyInput.type = "number";
+      qtyInput.min = "0";
+      qtyInput.step = "any";
+      qtyInput.value = item.qty;
+      qtyInput.addEventListener("input", () => { item.qty = qtyInput.value; updateTotal(); schedulePreview(); });
+
+      const priceInput = document.createElement("input");
+      priceInput.type = "number";
+      priceInput.min = "0";
+      priceInput.step = "any";
+      priceInput.placeholder = "0.00";
+      priceInput.value = item.price;
+      priceInput.addEventListener("input", () => { item.price = priceInput.value; updateTotal(); schedulePreview(); });
+
+      const totalSpan = document.createElement("span");
+      totalSpan.className = "li-total";
+      const updateTotal = () => {
+        const qty = parseFloat(item.qty), price = parseFloat(item.price);
+        totalSpan.textContent = (isNaN(qty) || isNaN(price)) ? "" : (qty * price).toFixed(2);
+        refreshAutoTotals();
+      };
+      updateTotal();
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "li-remove";
+      removeBtn.textContent = "×";
+      removeBtn.title = "Remove item";
+      removeBtn.addEventListener("click", () => {
+        lineItemsValues[elName].splice(idx, 1);
+        if (!lineItemsValues[elName].length) lineItemsValues[elName].push({ name: "", qty: "1", price: "" });
+        renderRows();
+        refreshAutoTotals();
+        schedulePreview();
+      });
+
+      row.appendChild(nameInput);
+      row.appendChild(qtyInput);
+      row.appendChild(priceInput);
+      row.appendChild(totalSpan);
+      row.appendChild(removeBtn);
+      rowsEl.appendChild(row);
+    });
+  };
+  renderRows();
+
+  const addBtn = document.createElement("button");
+  addBtn.type = "button";
+  addBtn.className = "secondary li-add";
+  addBtn.textContent = "+ Add item";
+  addBtn.addEventListener("click", () => {
+    lineItemsValues[elName].push({ name: "", qty: "1", price: "" });
+    renderRows();
+  });
+  container.appendChild(addBtn);
+}
+
+function renderForm() {
+  formFields.innerHTML = "";
+  currentTemplate.elements.forEach((el, i) => {
+    const block = document.createElement("div");
+    block.className = "field-block";
+
+    if (el.type === "field") {
+      const label = document.createElement("label");
+      label.className = "field-label";
+      label.textContent = el.label;
+      block.appendChild(label);
+      block.appendChild(makeToolbar(i));
+      const input = document.createElement("input");
+      input.type = "text";
+      input.dataset.name = el.name;
+      input.dataset.index = i;
+      if (el.default) input.value = resolveDefault(el.default);
+      input.addEventListener("input", schedulePreview);
+      block.appendChild(input);
+
+    } else if (el.type === "list" || el.type === "numbered_list") {
+      const label = document.createElement("label");
+      label.className = "field-label";
+      label.textContent = el.label + (el.type === "numbered_list" ? " (one per line, auto-numbered)" : " (one per line)");
+      block.appendChild(label);
+      block.appendChild(makeToolbar(i));
+      const textarea = document.createElement("textarea");
+      textarea.dataset.name = el.name;
+      textarea.dataset.index = i;
+      textarea.addEventListener("input", schedulePreview);
+      block.appendChild(textarea);
+
+    } else if (el.type === "text" || el.type === "section_header") {
+      const label = document.createElement("label");
+      label.className = "field-label";
+      label.textContent = el.type === "section_header" ? "Section header" : "Fixed text";
+      block.appendChild(label);
+      block.appendChild(makeToolbar(i));
+      const p = document.createElement("div");
+      p.className = "static-label";
+      p.textContent = `"${el.text}"`;
+      block.appendChild(p);
+
+    } else if (el.type === "auto") {
+      const label = document.createElement("label");
+      label.className = "field-label";
+      label.textContent = "Auto-filled";
+      block.appendChild(label);
+      block.appendChild(makeToolbar(i));
+      const p = document.createElement("div");
+      p.className = "static-label";
+      p.textContent = el.default === "today" ? "Today's date" : el.default === "now" ? "Current time" : el.default;
+      block.appendChild(p);
+
+    } else if (el.type === "divider") {
+      block.innerHTML = `<div class="decor">— divider —</div>`;
+    } else if (el.type === "thick_divider") {
+      block.innerHTML = `<div class="decor">== thick divider ==</div>`;
+    } else if (el.type === "spacer") {
+      block.innerHTML = `<div class="decor">(blank space)</div>`;
+    } else if (el.type === "image") {
+      const label = document.createElement("label");
+      label.className = "field-label";
+      label.textContent = el.label;
+      block.appendChild(label);
+
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = "image/*";
+      fileInput.dataset.name = el.name;
+
+      const thumb = document.createElement("img");
+      thumb.className = "image-thumb";
+      thumb.style.display = "none";
+
+      fileInput.addEventListener("change", () => {
+        const file = fileInput.files[0];
+        if (!file) {
+          delete imageValues[el.name];
+          thumb.style.display = "none";
+          schedulePreview();
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          imageValues[el.name] = reader.result;
+          thumb.src = reader.result;
+          thumb.style.display = "block";
+          schedulePreview();
+        };
+        reader.readAsDataURL(file);
+      });
+
+      block.appendChild(fileInput);
+      block.appendChild(thumb);
+    } else if (el.type === "qr" || el.type === "barcode") {
+      const label = document.createElement("label");
+      label.className = "field-label";
+      label.textContent = el.label;
+      block.appendChild(label);
+      const input = document.createElement("input");
+      input.type = "text";
+      input.dataset.name = el.name;
+      input.addEventListener("input", schedulePreview);
+      block.appendChild(input);
+
+    } else if (el.type === "line_items") {
+      const label = document.createElement("label");
+      label.className = "field-label";
+      label.textContent = el.label || "Items";
+      block.appendChild(label);
+      renderLineItemsEditor(block, el.name);
+
+    } else if (el.type === "auto_total") {
+      const label = document.createElement("label");
+      label.className = "field-label";
+      label.textContent = el.label || "Total";
+      block.appendChild(label);
+      const totalDisplay = document.createElement("div");
+      totalDisplay.className = "static-label auto-total-display li-grand-total";
+      totalDisplay.dataset.itemsName = el.items_name;
+      block.appendChild(totalDisplay);
+    }
+
+    formFields.appendChild(block);
+  });
+  refreshAutoTotals();
+}
+
+function collectValues() {
+  const values = { ...lineItemsValues };
+  formFields.querySelectorAll("input[type=text][data-name]").forEach(input => {
+    values[input.dataset.name] = input.value.trim();
+  });
+  formFields.querySelectorAll("textarea[data-name]").forEach(ta => {
+    values[ta.dataset.name] = ta.value.split("\n").map(s => s.trim()).filter(Boolean);
+  });
+  return values;
+}
+
+function collectValuesForPrint() {
+  return { ...collectValues(), ...imageValues };
+}
+
+function collectStyles() {
+  return currentTemplate.elements.map((el, i) => STYLABLE.has(el.type) ? elementStyles[i] : null);
+}
+
+function schedulePreview() {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(runPreview, 250);
+}
+
+async function runPreview() {
+  if (!currentTemplate) return;
+  const body = { template_id: currentTemplate.id, values: collectValues(), styles: collectStyles() };
+  const res = await fetch("/api/preview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const data = await res.json();
+  if (!res.ok) {
+    receiptEl.innerHTML = `<div class="empty">${data.error || "preview error"}</div>`;
+    return;
+  }
+  const textLines = data.lines.filter(op => op.kind === "text");
+  const codeLines = data.lines.filter(op => op.kind === "qr" || op.kind === "barcode");
+  const hasImages = Object.keys(imageValues).length > 0;
+  if (!textLines.length && !codeLines.length && !hasImages) {
+    receiptEl.innerHTML = `<div class="empty">Nothing to preview yet.</div>`;
+    return;
+  }
+  let html = textLines.map(({ text, align, bold, double }) => {
+    const style = `text-align:${align};font-weight:${bold ? 700 : 400};font-size:${double ? "1.8em" : "1em"};`;
+    const safe = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return `<div class="line" style="${style}">${safe || "&nbsp;"}</div>`;
+  }).join("");
+  html += codeLines.map(op => {
+    const label = op.kind === "qr" ? `[QR CODE] ${op.data}` : `[BARCODE ${op.bc_type}] ${op.data}`;
+    const safe = label.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return `<div class="line" style="text-align:${op.align};color:var(--muted);">${safe}</div>`;
+  }).join("");
+  if (hasImages) {
+    html += Object.values(imageValues).map(src => `<img src="${src}" style="max-width:100%;margin-top:8px;">`).join("");
+  }
+  receiptEl.innerHTML = html;
+}
+
+async function onPrint() {
+  if (!currentTemplate) return;
+  if (!confirm("Send this to the printer now?")) return;
+
+  const body = { template_id: currentTemplate.id, values: collectValuesForPrint(), styles: collectStyles() };
+  statusEl.textContent = "Printing...";
+  statusEl.className = "status";
+  const res = await fetch("/api/print", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const data = await res.json();
+  if (!res.ok) {
+    statusEl.textContent = data.error || "Print failed.";
+    statusEl.className = "status err";
+    return;
+  }
+  statusEl.textContent = "Printed.";
+  statusEl.className = "status ok";
+}
+
+templateSelect.addEventListener("change", () => selectTemplate(templateSelect.value));
+document.getElementById("refreshBtn").addEventListener("click", runPreview);
+printBtn.addEventListener("click", onPrint);
+
+// ---------- template management ----------
+
+const NEW_TEMPLATE_SKELETON = {
+  id: "new_template",
+  name: "New Template",
+  elements: [
+    { type: "text", text: "HEADER", align: "center", bold: true },
+    { type: "field", name: "line1", label: "Line 1" },
+    { type: "spacer", lines: 2 },
+  ],
+};
+
+let editingTemplateId = null;
+
+function setManageStatus(msg, isError) {
+  const el = document.getElementById("manageStatus");
+  el.textContent = msg;
+  el.className = "status " + (isError ? "err" : "ok");
+}
+
+function renderManageList() {
+  const listEl = document.getElementById("manageTemplateList");
+  listEl.innerHTML = templates.map(t =>
+    `<div class="manage-template-row" data-id="${t.id}"><span>${t.name}</span><span style="color:var(--muted);">${t.id}</span></div>`
+  ).join("");
+  listEl.querySelectorAll(".manage-template-row").forEach(row => {
+    row.addEventListener("click", () => loadTemplateIntoEditor(row.dataset.id));
+  });
+}
+
+function loadTemplateIntoEditor(id) {
+  const t = templates.find(x => x.id === id);
+  if (!t) return;
+  editingTemplateId = id;
+  document.getElementById("editingLabel").textContent = `${t.name} (${t.id})`;
+  document.getElementById("templateJsonEditor").value = JSON.stringify(t, null, 2);
+  setManageStatus("", false);
+}
+
+function newTemplateInEditor() {
+  editingTemplateId = null;
+  document.getElementById("editingLabel").textContent = "(new template)";
+  document.getElementById("templateJsonEditor").value = JSON.stringify(NEW_TEMPLATE_SKELETON, null, 2);
+  setManageStatus("", false);
+}
+
+async function saveTemplateFromEditor() {
+  let parsed;
+  try {
+    parsed = JSON.parse(document.getElementById("templateJsonEditor").value);
+  } catch (e) {
+    setManageStatus(`Invalid JSON: ${e.message}`, true);
+    return;
+  }
+  const res = await fetch("/api/templates/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ template: parsed }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    setManageStatus(data.error || "Save failed.", true);
+    return;
+  }
+  setManageStatus(`Saved "${data.id}".`, false);
+  editingTemplateId = data.id;
+  document.getElementById("editingLabel").textContent = `${parsed.name} (${data.id})`;
+  await loadTemplates();
+  renderManageList();
+}
+
+async function deleteTemplateFromEditor() {
+  if (!editingTemplateId) {
+    setManageStatus("Nothing to delete - this is a new, unsaved template.", true);
+    return;
+  }
+  if (!confirm(`Delete template "${editingTemplateId}"? This can't be undone.`)) return;
+  const res = await fetch("/api/templates/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: editingTemplateId }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    setManageStatus(data.error || "Delete failed.", true);
+    return;
+  }
+  setManageStatus(`Deleted "${editingTemplateId}".`, false);
+  newTemplateInEditor();
+  await loadTemplates();
+  renderManageList();
+}
+
+document.getElementById("newTemplateBtn").addEventListener("click", newTemplateInEditor);
+document.getElementById("saveTemplateBtn").addEventListener("click", saveTemplateFromEditor);
+document.getElementById("deleteTemplateBtn").addEventListener("click", deleteTemplateFromEditor);
+
+document.getElementById("tabPrint").addEventListener("click", () => {
+  document.getElementById("printView").style.display = "contents";
+  document.getElementById("manageView").hidden = true;
+  document.getElementById("tabPrint").classList.add("active");
+  document.getElementById("tabManage").classList.remove("active");
+});
+document.getElementById("tabManage").addEventListener("click", () => {
+  document.getElementById("printView").style.display = "none";
+  document.getElementById("manageView").hidden = false;
+  document.getElementById("tabManage").classList.add("active");
+  document.getElementById("tabPrint").classList.remove("active");
+  renderManageList();
+  if (!document.getElementById("templateJsonEditor").value) newTemplateInEditor();
+});
+
+loadTemplates();
+loadUsbDevices();
+</script>
+</body>
+</html>

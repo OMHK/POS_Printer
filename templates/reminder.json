@@ -1,0 +1,11 @@
+{
+  "id": "reminder",
+  "name": "Reminder",
+  "elements": [
+    {"type": "text", "text": "REMINDER", "align": "center", "bold": true, "double": true},
+    {"type": "field", "name": "when", "label": "When (e.g. 5:00 PM today)", "align": "center", "optional": true},
+    {"type": "divider"},
+    {"type": "field", "name": "message", "label": "Message"},
+    {"type": "spacer", "lines": 2}
+  ]
+}

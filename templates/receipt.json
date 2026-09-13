@@ -1,0 +1,24 @@
+{
+  "id": "receipt",
+  "name": "Receipt / Invoice",
+  "elements": [
+    {"type": "auto", "default": "today", "align": "left"},
+    {"type": "auto", "default": "now", "align": "left"},
+    {"type": "field", "name": "receipt_no", "label": "Receipt # (e.g. Sales Receipt #153996)", "align": "right"},
+    {"type": "thick_divider"},
+    {"type": "field", "name": "store_name", "label": "Store name", "align": "center", "bold": true, "double": true},
+    {"type": "field", "name": "store_location", "label": "Location (e.g. Amman - Shmeisani)", "align": "center"},
+    {"type": "field", "name": "store_company", "label": "Company name", "align": "center"},
+    {"type": "field", "name": "tax_no", "label": "Sales Tax # (e.g. Sales Tax #40283372)", "align": "center"},
+    {"type": "field", "name": "store_phone", "label": "Store phone", "align": "center"},
+    {"type": "divider"},
+    {"type": "field", "name": "bill_to", "label": "Bill To (e.g. Bill To: OMAR)"},
+    {"type": "field", "name": "customer_phone", "label": "Customer phone"},
+    {"type": "field", "name": "cashier", "label": "Cashier (e.g. Cashier: M)"},
+    {"type": "thick_divider"},
+    {"type": "line_items", "name": "items"},
+    {"type": "divider"},
+    {"type": "auto_total", "items_name": "items", "label": "TOTAL", "bold": true},
+    {"type": "spacer", "lines": 2}
+  ]
+}

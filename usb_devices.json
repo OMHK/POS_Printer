@@ -1,0 +1,14 @@
+{
+  "note": "Known USB serial devices on HomeServer, keyed by their /dev/serial/by-id/ name (stable across reconnects - see Printing_Closet_Setup.md incident from 2026-09-04). Update this list by SSHing in and running: ls -la /dev/serial/by-id/",
+  "current": "usb-POSIFLEX_TECHNOLOGY_INC._PP-6900_Thermal_Printer_PPUSB0-if00",
+  "devices": [
+    {
+      "id": "usb-POSIFLEX_TECHNOLOGY_INC._PP-6900_Thermal_Printer_PPUSB0-if00",
+      "name": "Posiflex PP-6900"
+    },
+    {
+      "id": "usb-Klipper_rp2040_50031287609A941C-if00",
+      "name": "Klipper rp2040"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "stickynote",
+  "name": "Quick Sticky Note",
+  "elements": [
+    {"type": "auto", "default": "now", "align": "right"},
+    {"type": "field", "name": "title", "label": "Title", "bold": true},
+    {"type": "divider"},
+    {"type": "list", "name": "lines", "label": "Line", "prefix": ""},
+    {"type": "spacer", "lines": 2}
+  ]
+}

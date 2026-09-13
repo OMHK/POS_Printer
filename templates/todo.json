@@ -1,0 +1,11 @@
+{
+  "id": "todo",
+  "name": "To-Do List",
+  "elements": [
+    {"type": "text", "text": "TO DO", "align": "center", "bold": true, "double": true},
+    {"type": "field", "name": "date", "label": "Date", "align": "center", "default": "today"},
+    {"type": "divider"},
+    {"type": "list", "name": "items", "label": "Item", "prefix": "[ ] "},
+    {"type": "spacer", "lines": 2}
+  ]
+}

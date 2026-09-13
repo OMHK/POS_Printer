@@ -1,0 +1,11 @@
+{
+  "id": "qrcard",
+  "name": "QR / Barcode Card",
+  "elements": [
+    {"type": "field", "name": "title", "label": "Title", "align": "center", "bold": true, "optional": true},
+    {"type": "qr", "name": "qr_data", "label": "QR code text or URL", "align": "center"},
+    {"type": "spacer", "lines": 1},
+    {"type": "barcode", "name": "barcode_data", "label": "Barcode value (CODE128)", "bc_type": "CODE128", "align": "center"},
+    {"type": "spacer", "lines": 2}
+  ]
+}

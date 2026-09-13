@@ -1,0 +1,10 @@
+{
+  "id": "label",
+  "name": "Small Label",
+  "status": "blocked",
+  "status_note": "Printer's paper sensor doesn't recognize the label roll as loaded paper yet (hardware issue, see CLAUDE.md). Positioning math (61 lines content + 2 lines gap at ESC 3 16 spacing) is solved but unverified end-to-end until the sensor issue is fixed.",
+  "elements": [
+    {"type": "field", "name": "line1", "label": "Line 1", "align": "center", "bold": true},
+    {"type": "field", "name": "line2", "label": "Line 2", "align": "center", "optional": true}
+  ]
+}

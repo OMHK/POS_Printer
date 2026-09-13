@@ -1,0 +1,11 @@
+{
+  "id": "schedule",
+  "name": "Daily Schedule",
+  "elements": [
+    {"type": "text", "text": "SCHEDULE", "align": "center", "bold": true, "double": true},
+    {"type": "field", "name": "date", "label": "Date", "align": "center", "default": "today"},
+    {"type": "thick_divider"},
+    {"type": "numbered_list", "name": "slots", "label": "Time slot (e.g. 9:00 AM  Staff meeting)"},
+    {"type": "spacer", "lines": 2}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "freetext",
+  "name": "Free Text Note",
+  "elements": [
+    {"type": "field", "name": "title", "label": "Title", "align": "center", "bold": true, "optional": true},
+    {"type": "divider", "optional_if_empty": "title"},
+    {"type": "list", "name": "lines", "label": "Line", "prefix": ""},
+    {"type": "spacer", "lines": 2}
+  ]
+}
