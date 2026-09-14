@@ -31,7 +31,7 @@ CUPS admin/web UI: `https://192.168.1.83:631` (self-signed cert — expected, ac
 - **Different architecture from the other two** — connects as a CDC-ACM virtual serial device, not USB-printer-class. Full details, the ESC/POS command reference, and known driver limitations are in **`CLAUDE.md`** — that's the primary reference for this one.
 - **Two ways to print to it:**
   - Raw TCP socket at `192.168.1.83:9100` (via the `posiflex-bridge` systemd service, bridging to `/dev/serial/by-id/usb-POSIFLEX_TECHNOLOGY_INC._PP-6900_Thermal_Printer_PPUSB0-if00` — **not** a numbered `/dev/ttyACMx` path, see incident below) — this is what POS apps (Loyverse, etc.) and `python-escpos` should target directly
-  - CUPS raw queue `Posiflex_PP6900` (`serial:/dev/ttyACM0?baud=9600`) — still hardcoded to the numbered path and carries the same risk described below; hasn't been fixed since the TCP:9100 path is what's actually used for real integrations. Fix it the same way (point at the by-id symlink) before relying on this queue again.
+  - CUPS raw queue `Posiflex_PP6900` — **fixed 2026-09-11**, now points at `serial:/dev/serial/by-id/usb-POSIFLEX_TECHNOLOGY_INC._PP-6900_Thermal_Printer_PPUSB0-if00?baud=9600` instead of the numbered path. No longer at risk from the renumbering incident below.
 - **Avoid** the `Posiflex_PP6900_GUI` queue (`rastertoescpos` CUPS driver) — confirmed broken for anything graphical
 
 ### Incident: silent print failures from a numbered `/dev/ttyACMx` device path (2026-09-04)
@@ -43,6 +43,26 @@ HomeServer has **two** USB CDC-ACM devices: the Posiflex printer and a 3D printe
 **Fix**: point the bridge at `/dev/serial/by-id/usb-POSIFLEX_TECHNOLOGY_INC._PP-6900_Thermal_Printer_PPUSB0-if00` instead — udev's by-id symlinks are keyed to the device's actual USB identity (vendor/product/serial), not enumeration order, so this can't happen again regardless of what else gets plugged in or reconnected.
 
 **Lesson**: never hardcode a numbered `/dev/ttyACMx` or `/dev/ttyUSBx` path in any service config on a machine with more than one USB-serial device — always use the corresponding `/dev/serial/by-id/...` symlink (`ls -la /dev/serial/by-id/` to find it).
+
+## Template printing web app (thermal-print-webapp)
+
+The Flask app in the `POS_Printer` repo (https://github.com/OMHK/POS_Printer) that lets the Posiflex be driven from a browser/phone. Runs on HomeServer as a Docker container, reachable at `http://192.168.1.83:5051`.
+
+**Deploying/updating it** (2026-09-14 onward):
+```bash
+cd ~/thermal-print-webapp && ./deploy.sh
+```
+That pulls the latest git commit, rebuilds the image, and restarts the container. No more manual `scp` + `docker build` + `docker run` — everything needed is in the repo (`Dockerfile`, `deploy.sh`).
+
+To push code changes from a dev machine: commit + `git push` to the repo, then run `deploy.sh` on HomeServer (or SSH in and do it remotely: `ssh anon@192.168.1.83 'cd ~/thermal-print-webapp && ./deploy.sh'`).
+
+**Data persistence — important**: `templates/*.json` and `usb_devices.json` are **not** baked into the Docker image. They're bind-mounted from `~/thermal-print-data/` on HomeServer's host filesystem:
+```
+docker run ... -v ~/thermal-print-data/templates:/app/templates -v ~/thermal-print-data/usb_devices.json:/app/usb_devices.json ...
+```
+This is deliberate: the app's "Manage Templates" tab lets anyone on the LAN create/edit/delete templates live, and those writes land inside whatever container is currently running. Without this bind mount, a `docker build`+restart (i.e. every deploy) would silently **wipe** any templates created or edited since the last deploy — the container's writable layer doesn't survive being replaced. `deploy.sh` already does this correctly; don't remove the `-v` flags if editing it by hand. Verified 2026-09-14 by creating a template via the live app, redeploying, and confirming it survived.
+
+The in-repo `templates/` directory is just the seed set for a fresh clone/local dev — it is not the live source of truth once deployed. If you want to pull live-created templates back into git for backup, copy from `~/thermal-print-data/templates/` on HomeServer, not from the repo checkout.
 
 ## Common notes across all three
 
