@@ -5,8 +5,11 @@
 #
 # Templates and usb_devices.json are NOT baked into the image - they're
 # bind-mounted from ~/thermal-print-data/ so edits made live via the web
-# app's "Manage Templates" tab survive rebuilds/restarts. See the
-# "data persistence" note in Printing_Closet_Setup.md before changing this.
+# app's "Manage Templates" tab survive rebuilds/restarts. New template
+# files added to the repo are copied into that persistent dir on deploy
+# (no-clobber - never overwrites a template that's already there, live-
+# edited or not). See the "data persistence" note in
+# Printing_Closet_Setup.md before changing this.
 set -euo pipefail
 
 DATA_DIR="$HOME/thermal-print-data"
@@ -15,6 +18,13 @@ IMAGE_NAME="thermal-print-webapp"
 
 echo "==> Pulling latest code"
 git pull
+
+echo "==> Seeding any new templates into persistent data dir (never overwrites existing ones)"
+mkdir -p "$DATA_DIR/templates"
+cp -n templates/*.json "$DATA_DIR/templates/" 2>/dev/null || true
+if [ ! -f "$DATA_DIR/usb_devices.json" ]; then
+  cp usb_devices.json "$DATA_DIR/usb_devices.json"
+fi
 
 echo "==> Building image"
 docker build -t "$IMAGE_NAME" .
