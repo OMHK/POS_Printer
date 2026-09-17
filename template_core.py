@@ -123,11 +123,16 @@ def build_lines(template, values, styles=None):
                        4-column Name/Qty/Price/Total table with a header row
       auto_total     — grand total computed from a "line_items" element's values,
                        referenced by element["items_name"]
-      table          — user-defined columns (element["columns"]: list of str, or
-                       {"label","width"} dicts for an explicit column width),
-                       user-supplied rows (values[name]: list of row lists,
-                       one cell per column) added/removed freely at fill time.
-                       Column widths auto-split evenly to fill LINE_WIDTH exactly.
+      table          — two modes, both via values[name]: list of row lists (one
+                       cell per column):
+                         - fixed columns: element["columns"] (list of str, or
+                           {"label","width"} dicts) defines the header/widths;
+                           values are pure data rows, added/removed at fill time.
+                         - ad-hoc grid: no element["columns"] - the first row in
+                           values IS the (freely-typed) header, sized by however
+                           many rows/columns were entered at fill time.
+                       Either way, column widths auto-split evenly to fill
+                       LINE_WIDTH exactly.
     """
     styles = styles or []
     ops = []
@@ -215,15 +220,28 @@ def build_lines(template, values, styles=None):
             ops.append({"kind": "text", "text": text, "align": align, "bold": bold, "double": double})
 
         elif etype == "table":
-            columns = element.get("columns", [])
-            rows = [r for r in values.get(element["name"], []) if any(str(c).strip() for c in r)]
-            if columns and rows:
-                widths = table_column_widths(columns)
-                labels = [c.get("label", "") if isinstance(c, dict) else str(c) for c in columns]
-                ops.append({"kind": "text", "text": _table_row(widths, labels), "align": "left", "bold": True, "double": False})
-                for row in rows:
-                    cells = (list(row) + [""] * len(columns))[:len(columns)]
-                    ops.append({"kind": "text", "text": _table_row(widths, cells), "align": "left", "bold": False, "double": False})
+            columns = element.get("columns")
+            raw_rows = [r for r in values.get(element["name"], []) if any(str(c).strip() for c in r)]
+            if columns:
+                # Fixed columns defined in the template - header comes from
+                # element["columns"], values are pure data rows.
+                if raw_rows:
+                    widths = table_column_widths(columns)
+                    labels = [c.get("label", "") if isinstance(c, dict) else str(c) for c in columns]
+                    ops.append({"kind": "text", "text": _table_row(widths, labels), "align": "left", "bold": True, "double": False})
+                    for row in raw_rows:
+                        cells = (list(row) + [""] * len(columns))[:len(columns)]
+                        ops.append({"kind": "text", "text": _table_row(widths, cells), "align": "left", "bold": False, "double": False})
+            else:
+                # Ad-hoc grid - no columns defined in the template, so the
+                # first submitted row IS the (freely-typed) header, sized by
+                # whatever row/col counts were entered at fill time.
+                if raw_rows:
+                    n_cols = max(len(r) for r in raw_rows)
+                    widths = table_column_widths([""] * n_cols)
+                    for i, row in enumerate(raw_rows):
+                        cells = (list(row) + [""] * n_cols)[:n_cols]
+                        ops.append({"kind": "text", "text": _table_row(widths, cells), "align": "left", "bold": i == 0, "double": False})
 
     return ops
 

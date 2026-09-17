@@ -321,6 +321,9 @@ auto_total      {"type":"auto_total","items_name":"x","label":"TOTAL","bold":tru
 table           {"type":"table","name":"x","label":"...","columns":["Col A","Col B"]}
                 columns can mix plain strings and {"label":"Col A","width":10}
                 (unspecified widths auto-split evenly); rows added freely at fill time
+                omit "columns" entirely for an ad-hoc grid instead: two Rows/Cols
+                number inputs appear at fill time, first typed row is the header
+                {"type":"table","name":"x","label":"...","default_rows":3,"default_cols":3}
 
 Every template needs top-level "id" (a-z 0-9 _ -), "name", and "elements" (array).</div>
         </details>
@@ -653,6 +656,80 @@ function renderTableEditor(container, elName, columns) {
   container.appendChild(addBtn);
 }
 
+function renderDynamicTableEditor(container, elName, defaultRows, defaultCols) {
+  // Ad-hoc mode: no fixed columns from the template - the user picks the
+  // grid size themselves via the two number inputs below, and the first
+  // row they type becomes the (bold) header when printed.
+  if (!tableValues[elName]) {
+    tableValues[elName] = Array.from({ length: defaultRows }, () => Array(defaultCols).fill(""));
+  }
+
+  const dims = document.createElement("div");
+  dims.style.cssText = "display:flex;gap:16px;margin-bottom:10px;align-items:center;";
+  const rowsLabel = document.createElement("label");
+  rowsLabel.style.cssText = "font-size:13px;display:flex;align-items:center;gap:6px;";
+  const rowsInput = document.createElement("input");
+  rowsInput.type = "number";
+  rowsInput.min = "1";
+  rowsInput.max = "30";
+  rowsInput.value = tableValues[elName].length;
+  rowsInput.style.cssText = "width:60px;padding:5px 7px;border:1px solid var(--border);border-radius:5px;";
+  rowsLabel.append("Rows", rowsInput);
+
+  const colsLabel = document.createElement("label");
+  colsLabel.style.cssText = "font-size:13px;display:flex;align-items:center;gap:6px;";
+  const colsInput = document.createElement("input");
+  colsInput.type = "number";
+  colsInput.min = "1";
+  colsInput.max = "12";
+  colsInput.value = (tableValues[elName][0] || []).length;
+  colsInput.style.cssText = "width:60px;padding:5px 7px;border:1px solid var(--border);border-radius:5px;";
+  colsLabel.append("Cols", colsInput);
+
+  dims.appendChild(rowsLabel);
+  dims.appendChild(colsLabel);
+  container.appendChild(dims);
+
+  const gridEl = document.createElement("div");
+  container.appendChild(gridEl);
+
+  const renderGrid = () => {
+    const cols = (tableValues[elName][0] || [""]).length;
+    gridEl.style.cssText = `display:grid;grid-template-columns:repeat(${cols}, 1fr);gap:6px;`;
+    gridEl.innerHTML = "";
+    tableValues[elName].forEach((row, r) => {
+      row.forEach((val, c) => {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = val;
+        input.placeholder = r === 0 ? `Header ${c + 1}` : "";
+        input.style.cssText = `width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;${r === 0 ? "font-weight:600;" : ""}`;
+        input.addEventListener("input", () => { tableValues[elName][r][c] = input.value; schedulePreview(); });
+        gridEl.appendChild(input);
+      });
+    });
+  };
+  renderGrid();
+
+  const applyResize = () => {
+    const rows = Math.max(1, Math.min(30, parseInt(rowsInput.value, 10) || 1));
+    const cols = Math.max(1, Math.min(12, parseInt(colsInput.value, 10) || 1));
+    const old = tableValues[elName];
+    const next = [];
+    for (let r = 0; r < rows; r++) {
+      const oldRow = old[r] || [];
+      const newRow = [];
+      for (let c = 0; c < cols; c++) newRow.push(oldRow[c] || "");
+      next.push(newRow);
+    }
+    tableValues[elName] = next;
+    renderGrid();
+    schedulePreview();
+  };
+  rowsInput.addEventListener("change", applyResize);
+  colsInput.addEventListener("change", applyResize);
+}
+
 function renderForm() {
   formFields.innerHTML = "";
   currentTemplate.elements.forEach((el, i) => {
@@ -781,7 +858,11 @@ function renderForm() {
       label.className = "field-label";
       label.textContent = el.label || "Table";
       block.appendChild(label);
-      renderTableEditor(block, el.name, el.columns || []);
+      if (el.columns && el.columns.length) {
+        renderTableEditor(block, el.name, el.columns);
+      } else {
+        renderDynamicTableEditor(block, el.name, el.default_rows || 3, el.default_cols || 3);
+      }
     }
 
     formFields.appendChild(block);

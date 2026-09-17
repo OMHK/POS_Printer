@@ -3,7 +3,7 @@
   "name": "Custom Table",
   "elements": [
     {"type": "field", "name": "title", "label": "Title", "align": "center", "bold": true, "optional": true},
-    {"type": "table", "name": "rows", "label": "Table", "columns": ["Item", "Qty", "Notes"]},
+    {"type": "table", "name": "rows", "label": "Table", "default_rows": 9, "default_cols": 4},
     {"type": "spacer", "lines": 2}
   ]
 }

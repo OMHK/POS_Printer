@@ -69,19 +69,41 @@ def prompt_line_items(element):
 
 
 def prompt_table(element):
-    columns = element.get("columns", [])
-    labels = [c.get("label", "") if isinstance(c, dict) else str(c) for c in columns]
-    print(f"  {element.get('label', 'Table')} - columns: {', '.join(labels)} (blank first cell to finish):")
-    rows = []
+    columns = element.get("columns")
+    if columns:
+        labels = [c.get("label", "") if isinstance(c, dict) else str(c) for c in columns]
+        print(f"  {element.get('label', 'Table')} - columns: {', '.join(labels)} (blank first cell to finish):")
+        rows = []
+        while True:
+            first = input(f"    {labels[0]}: ").strip()
+            if not first:
+                break
+            row = [first]
+            for label in labels[1:]:
+                row.append(input(f"    {label}: ").strip())
+            rows.append(row)
+        return rows
+
+    # Ad-hoc grid: no fixed columns, so ask how many, then the header labels,
+    # then data rows - the header row itself is what build_lines bolds.
+    n_raw = input(f"  {element.get('label', 'Table')} - how many columns? [{element.get('default_cols', 3)}]: ").strip()
+    try:
+        n = int(n_raw) if n_raw else element.get("default_cols", 3)
+    except ValueError:
+        n = element.get("default_cols", 3)
+    print(f"  Enter {n} header labels:")
+    headers = [input(f"    header {i + 1}: ").strip() or f"Col {i + 1}" for i in range(n)]
+    print("  Rows (blank first cell to finish):")
+    rows = [headers]
     while True:
-        first = input(f"    {labels[0]}: ").strip()
+        first = input(f"    {headers[0]}: ").strip()
         if not first:
             break
         row = [first]
-        for label in labels[1:]:
-            row.append(input(f"    {label}: ").strip())
+        for h in headers[1:]:
+            row.append(input(f"    {h}: ").strip())
         rows.append(row)
-    return rows
+    return rows if len(rows) > 1 else []
 
 
 def collect_values(template):
