@@ -141,6 +141,16 @@ class TemplateApp(tk.Tk):
                 ).grid(row=row, column=0, columnspan=2, sticky="w", pady=4)
                 row += 1
 
+            elif etype == "table":
+                ttk.Label(
+                    self.form_frame,
+                    text=f"{element.get('label', 'Table')}: custom table not editable in this GUI yet - "
+                         "use the web app (app.py) or the CLI.",
+                    foreground="#888888",
+                    wraplength=440,
+                ).grid(row=row, column=0, columnspan=2, sticky="w", pady=4)
+                row += 1
+
             # auto_total, section_header, divider, thick_divider, spacer, text: no form widget needed
 
         self.form_frame.columnconfigure(1, weight=1)

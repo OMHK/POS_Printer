@@ -50,6 +50,31 @@ def _li_row(name, qty, price, total):
     return f"{str(name)[:LI_NAME_W]:<{LI_NAME_W}} {str(qty):>{LI_QTY_W}} {price:>{LI_PRICE_W}} {total:>{LI_TOTAL_W}}"
 
 
+def table_column_widths(columns):
+    """columns: list of str, or {"label":, "width":} dicts for an explicit width.
+    Returns a list of ints that always sums (with the N-1 single-space gaps
+    between them) to exactly LINE_WIDTH - unspecified columns split whatever
+    space is left evenly, so a "table" element never leaves the blank-margin
+    gap the LINE_WIDTH=32 bug caused (see CLAUDE.md)."""
+    n = len(columns)
+    explicit = {i: c["width"] for i, c in enumerate(columns) if isinstance(c, dict) and "width" in c}
+    remaining = LINE_WIDTH - (n - 1) - sum(explicit.values())
+    auto = [i for i in range(n) if i not in explicit]
+    widths = [0] * n
+    for i, w in explicit.items():
+        widths[i] = w
+    if auto:
+        base, extra = divmod(remaining, len(auto))
+        for j, i in enumerate(auto):
+            widths[i] = base + (extra if j == len(auto) - 1 else 0)
+    return widths
+
+
+def _table_row(widths, cells):
+    parts = [f"{str(c)[:w]:<{w}}" for w, c in zip(widths, cells)]
+    return " ".join(parts)
+
+
 def items_total(items):
     total = 0
     for it in items:
@@ -71,7 +96,8 @@ def resolve_default(default):
 def build_lines(template, values, styles=None):
     """values: {field_name: str} for "field", "qr" and "barcode" elements,
                {list_name: [str, ...]} for "list" / "numbered_list" elements,
-               {image_name: bytes} raw image file bytes for "image" elements.
+               {image_name: bytes} raw image file bytes for "image" elements,
+               {table_name: [[cell, cell, ...], ...]} one row list per row for "table" elements.
     styles: optional list, aligned by index with template["elements"], of
             {"align":, "bold":, "double":} overrides for that element (used by
             the web app's per-line formatting toolbar). None/{} entries fall
@@ -97,6 +123,11 @@ def build_lines(template, values, styles=None):
                        4-column Name/Qty/Price/Total table with a header row
       auto_total     — grand total computed from a "line_items" element's values,
                        referenced by element["items_name"]
+      table          — user-defined columns (element["columns"]: list of str, or
+                       {"label","width"} dicts for an explicit column width),
+                       user-supplied rows (values[name]: list of row lists,
+                       one cell per column) added/removed freely at fill time.
+                       Column widths auto-split evenly to fill LINE_WIDTH exactly.
     """
     styles = styles or []
     ops = []
@@ -182,6 +213,17 @@ def build_lines(template, values, styles=None):
             label = element.get("label", "TOTAL")
             text = f"{label:<{LINE_WIDTH - LI_TOTAL_W - 1}} {total:>{LI_TOTAL_W}.2f}"
             ops.append({"kind": "text", "text": text, "align": align, "bold": bold, "double": double})
+
+        elif etype == "table":
+            columns = element.get("columns", [])
+            rows = [r for r in values.get(element["name"], []) if any(str(c).strip() for c in r)]
+            if columns and rows:
+                widths = table_column_widths(columns)
+                labels = [c.get("label", "") if isinstance(c, dict) else str(c) for c in columns]
+                ops.append({"kind": "text", "text": _table_row(widths, labels), "align": "left", "bold": True, "double": False})
+                for row in rows:
+                    cells = (list(row) + [""] * len(columns))[:len(columns)]
+                    ops.append({"kind": "text", "text": _table_row(widths, cells), "align": "left", "bold": False, "double": False})
 
     return ops
 

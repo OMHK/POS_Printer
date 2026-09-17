@@ -1,0 +1,9 @@
+{
+  "id": "table",
+  "name": "Custom Table",
+  "elements": [
+    {"type": "field", "name": "title", "label": "Title", "align": "center", "bold": true, "optional": true},
+    {"type": "table", "name": "rows", "label": "Table", "columns": ["Item", "Qty", "Notes"]},
+    {"type": "spacer", "lines": 2}
+  ]
+}

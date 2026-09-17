@@ -318,6 +318,9 @@ qr              {"type":"qr","name":"x","label":"..."}
 barcode         {"type":"barcode","name":"x","label":"...","bc_type":"CODE128"}
 line_items      {"type":"line_items","name":"x","label":"Items"}
 auto_total      {"type":"auto_total","items_name":"x","label":"TOTAL","bold":true}
+table           {"type":"table","name":"x","label":"...","columns":["Col A","Col B"]}
+                columns can mix plain strings and {"label":"Col A","width":10}
+                (unspecified widths auto-split evenly); rows added freely at fill time
 
 Every template needs top-level "id" (a-z 0-9 _ -), "name", and "elements" (array).</div>
         </details>
@@ -353,6 +356,7 @@ let currentTemplate = null;
 let elementStyles = [];   // parallel to currentTemplate.elements
 let imageValues = {};     // name -> data: URL (base64), for "image" elements
 let lineItemsValues = {}; // name -> [{name, qty, price}, ...], for "line_items" elements
+let tableValues = {};     // name -> [[cell, cell, ...], ...], for "table" elements
 let previewTimer = null;
 
 const templateSelect = document.getElementById("templateSelect");
@@ -421,6 +425,7 @@ function selectTemplate(id) {
   templateSelect.value = id;
   imageValues = {};
   lineItemsValues = {};
+  tableValues = {};
   elementStyles = currentTemplate.elements.map(el => ({
     align: el.align || "left",
     bold: el.bold || (el.type === "section_header"),
@@ -589,6 +594,65 @@ function renderLineItemsEditor(container, elName) {
   container.appendChild(addBtn);
 }
 
+function renderTableEditor(container, elName, columns) {
+  const labels = columns.map(c => (typeof c === "object" ? c.label : c) || "");
+  if (!tableValues[elName]) tableValues[elName] = [labels.map(() => "")];
+
+  const gridCols = `repeat(${labels.length}, 1fr) 28px`;
+
+  const header = document.createElement("div");
+  header.style.cssText = `display:grid;grid-template-columns:${gridCols};gap:6px;font-size:11px;color:var(--muted);margin-bottom:4px;`;
+  header.innerHTML = labels.map(l => `<span>${l}</span>`).join("") + "<span></span>";
+  container.appendChild(header);
+
+  const rowsEl = document.createElement("div");
+  container.appendChild(rowsEl);
+
+  const renderRows = () => {
+    rowsEl.innerHTML = "";
+    tableValues[elName].forEach((row, idx) => {
+      const rowEl = document.createElement("div");
+      rowEl.style.cssText = `display:grid;grid-template-columns:${gridCols};gap:6px;align-items:center;margin-bottom:6px;`;
+
+      labels.forEach((label, colIdx) => {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = label;
+        input.value = row[colIdx] || "";
+        input.style.cssText = "width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;";
+        input.addEventListener("input", () => { row[colIdx] = input.value; schedulePreview(); });
+        rowEl.appendChild(input);
+      });
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "li-remove";
+      removeBtn.textContent = "×";
+      removeBtn.title = "Remove row";
+      removeBtn.addEventListener("click", () => {
+        tableValues[elName].splice(idx, 1);
+        if (!tableValues[elName].length) tableValues[elName].push(labels.map(() => ""));
+        renderRows();
+        schedulePreview();
+      });
+      rowEl.appendChild(removeBtn);
+
+      rowsEl.appendChild(rowEl);
+    });
+  };
+  renderRows();
+
+  const addBtn = document.createElement("button");
+  addBtn.type = "button";
+  addBtn.className = "secondary li-add";
+  addBtn.textContent = "+ Add row";
+  addBtn.addEventListener("click", () => {
+    tableValues[elName].push(labels.map(() => ""));
+    renderRows();
+  });
+  container.appendChild(addBtn);
+}
+
 function renderForm() {
   formFields.innerHTML = "";
   currentTemplate.elements.forEach((el, i) => {
@@ -711,6 +775,13 @@ function renderForm() {
       totalDisplay.className = "static-label auto-total-display li-grand-total";
       totalDisplay.dataset.itemsName = el.items_name;
       block.appendChild(totalDisplay);
+
+    } else if (el.type === "table") {
+      const label = document.createElement("label");
+      label.className = "field-label";
+      label.textContent = el.label || "Table";
+      block.appendChild(label);
+      renderTableEditor(block, el.name, el.columns || []);
     }
 
     formFields.appendChild(block);
@@ -719,7 +790,7 @@ function renderForm() {
 }
 
 function collectValues() {
-  const values = { ...lineItemsValues };
+  const values = { ...lineItemsValues, ...tableValues };
   formFields.querySelectorAll("input[type=text][data-name]").forEach(input => {
     values[input.dataset.name] = input.value.trim();
   });

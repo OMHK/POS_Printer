@@ -68,6 +68,22 @@ def prompt_line_items(element):
     return items
 
 
+def prompt_table(element):
+    columns = element.get("columns", [])
+    labels = [c.get("label", "") if isinstance(c, dict) else str(c) for c in columns]
+    print(f"  {element.get('label', 'Table')} - columns: {', '.join(labels)} (blank first cell to finish):")
+    rows = []
+    while True:
+        first = input(f"    {labels[0]}: ").strip()
+        if not first:
+            break
+        row = [first]
+        for label in labels[1:]:
+            row.append(input(f"    {label}: ").strip())
+        rows.append(row)
+    return rows
+
+
 def collect_values(template):
     values = {}
     for element in template["elements"]:
@@ -82,6 +98,8 @@ def collect_values(template):
                 values[element["name"]] = img_bytes
         elif etype == "line_items":
             values[element["name"]] = prompt_line_items(element)
+        elif etype == "table":
+            values[element["name"]] = prompt_table(element)
         # auto, auto_total, section_header, divider, thick_divider, spacer, text: no user input needed
     return values
 
